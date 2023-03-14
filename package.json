@@ -1,6 +1,6 @@
 {
-  "name": "@alepertu/next-template",
-  "version": "0.7.1",
+  "name": "@alepertu/completionist",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

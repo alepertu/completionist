@@ -1,9 +1,9 @@
 import '../styles/globals.css';
 
 export const metadata = {
-  title: 'Template page',
-  description: 'Base template page for customization',
-}; // !FIXME
+  title: 'Completionist',
+  description: 'Tooling for game completionists',
+};
 
 export default function RootLayout({
   children,
@@ -11,8 +11,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang='es'>
+    <html lang='en'>
       <body>{children}</body>
     </html>
-  ); // !FIXME
+  );
 }
