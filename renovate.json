@@ -1,4 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"]
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["UPDATE-MAJOR"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "labels": ["UPDATE-MINOR"]
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "labels": ["UPDATE-PATCH"]
+    }
+  ],
+  "schedule": ["on monday and thursday"]
 }
