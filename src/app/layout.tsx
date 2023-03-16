@@ -1,4 +1,8 @@
+import { Orbitron } from 'next/font/google';
+
 import '../styles/globals.css';
+
+const orbitron = Orbitron({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Completionist',
@@ -12,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body>{children}</body>
+      <body className={orbitron.className + ' bg-yellow-50'}>{children}</body>
     </html>
   );
 }
