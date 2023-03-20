@@ -52,7 +52,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["next", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:13.2.4"],\
             ["pinst", "npm:3.0.0"],\
             ["postcss", "npm:8.4.21"],\
-            ["prettier", "npm:2.8.4"],\
+            ["prettier", "npm:2.8.5"],\
             ["prettier-plugin-tailwindcss", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:0.2.4"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:18.2.0"],\
@@ -101,7 +101,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["next", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:13.2.4"],\
             ["pinst", "npm:3.0.0"],\
             ["postcss", "npm:8.4.21"],\
-            ["prettier", "npm:2.8.4"],\
+            ["prettier", "npm:2.8.5"],\
             ["prettier-plugin-tailwindcss", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:0.2.4"],\
             ["react", "npm:18.2.0"],\
             ["react-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:18.2.0"],\
@@ -8104,10 +8104,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["prettier", [\
-        ["npm:2.8.4", {\
-          "packageLocation": "./.yarn/cache/prettier-npm-2.8.4-ba64a351d1-c173064bf3.zip/node_modules/prettier/",\
+        ["npm:2.8.5", {\
+          "packageLocation": "./.yarn/cache/prettier-npm-2.8.5-3f60833fcb-b7f8d30e14.zip/node_modules/prettier/",\
           "packageDependencies": [\
-            ["prettier", "npm:2.8.4"]\
+            ["prettier", "npm:2.8.5"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -8146,7 +8146,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/shopify__prettier-plugin-liquid", null],\
             ["@types/shufo__prettier-plugin-blade", null],\
             ["@types/trivago__prettier-plugin-sort-imports", null],\
-            ["prettier", "npm:2.8.4"],\
+            ["prettier", "npm:2.8.5"],\
             ["prettier-plugin-astro", null],\
             ["prettier-plugin-css-order", null],\
             ["prettier-plugin-import-sort", null],\
