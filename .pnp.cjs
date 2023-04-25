@@ -32,7 +32,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@commitlint/config-conventional", "npm:17.6.1"],\
             ["@testing-library/jest-dom", "npm:5.16.5"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
-            ["@types/jest", "npm:29.4.3"],\
+            ["@types/jest", "npm:29.5.1"],\
             ["@types/node", "npm:18.15.11"],\
             ["@types/react", "npm:18.0.38"],\
             ["@types/react-dom", "npm:18.0.11"],\
@@ -81,7 +81,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@commitlint/config-conventional", "npm:17.6.1"],\
             ["@testing-library/jest-dom", "npm:5.16.5"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
-            ["@types/jest", "npm:29.4.3"],\
+            ["@types/jest", "npm:29.5.1"],\
             ["@types/node", "npm:18.15.11"],\
             ["@types/react", "npm:18.0.38"],\
             ["@types/react-dom", "npm:18.0.11"],\
@@ -1997,19 +1997,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@types/jest", [\
-        ["npm:29.4.1", {\
-          "packageLocation": "./.yarn/cache/@types-jest-npm-29.4.1-1b1e6c84b6-75cdd18046.zip/node_modules/@types/jest/",\
+        ["npm:29.5.1", {\
+          "packageLocation": "./.yarn/cache/@types-jest-npm-29.5.1-0eddfd7e9a-0a22491dec.zip/node_modules/@types/jest/",\
           "packageDependencies": [\
-            ["@types/jest", "npm:29.4.1"],\
-            ["expect", "npm:29.5.0"],\
-            ["pretty-format", "npm:29.5.0"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
-        ["npm:29.4.3", {\
-          "packageLocation": "./.yarn/cache/@types-jest-npm-29.4.3-5ff5ad8dd1-3de19311fa.zip/node_modules/@types/jest/",\
-          "packageDependencies": [\
-            ["@types/jest", "npm:29.4.3"],\
+            ["@types/jest", "npm:29.5.1"],\
             ["expect", "npm:29.5.0"],\
             ["pretty-format", "npm:29.5.0"]\
           ],\
@@ -2162,7 +2153,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-testing-library__jest-dom-npm-5.14.5-251c4c9d75-dcb0541675.zip/node_modules/@types/testing-library__jest-dom/",\
           "packageDependencies": [\
             ["@types/testing-library__jest-dom", "npm:5.14.5"],\
-            ["@types/jest", "npm:29.4.1"]\
+            ["@types/jest", "npm:29.5.1"]\
           ],\
           "linkType": "HARD"\
         }]\
