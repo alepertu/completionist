@@ -1,8 +1,11 @@
-import { Orbitron } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
 import '../styles/globals.css';
 
-const orbitron = Orbitron({ subsets: ['latin'] });
+import ActionBar from '@/components/organisms/action_bar';
+import MainSidebar from '@/components/organisms/sidebar';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Completionist',
@@ -16,7 +19,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body className={orbitron.className + ' bg-yellow-50'}>{children}</body>
+      <body className={inter.className}>
+        <MainSidebar />
+        <ActionBar />
+        <div className='ml-72 mt-16'>{children}</div>
+      </body>
     </html>
   );
 }
