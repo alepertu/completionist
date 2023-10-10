@@ -30,7 +30,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@commitlint/cli", "npm:17.6.6"],\
             ["@commitlint/config-conventional", "npm:17.6.6"],\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
+            ["@testing-library/jest-dom", "npm:5.17.0"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
             ["@types/jest", "npm:29.5.2"],\
             ["@types/node", "npm:18.16.18"],\
@@ -79,7 +79,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@alepertu/completionist", "workspace:."],\
             ["@commitlint/cli", "npm:17.6.6"],\
             ["@commitlint/config-conventional", "npm:17.6.6"],\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
+            ["@testing-library/jest-dom", "npm:5.17.0"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
             ["@types/jest", "npm:29.5.2"],\
             ["@types/node", "npm:18.16.18"],\
@@ -1822,10 +1822,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@testing-library/jest-dom", [\
-        ["npm:5.16.5", {\
-          "packageLocation": "./.yarn/cache/@testing-library-jest-dom-npm-5.16.5-b6d1f4e02f-94911f901a.zip/node_modules/@testing-library/jest-dom/",\
+        ["npm:5.17.0", {\
+          "packageLocation": "./.yarn/cache/@testing-library-jest-dom-npm-5.17.0-a702605ee4-9f28dbca8b.zip/node_modules/@testing-library/jest-dom/",\
           "packageDependencies": [\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
+            ["@testing-library/jest-dom", "npm:5.17.0"],\
             ["@adobe/css-tools", "npm:4.2.0"],\
             ["@babel/runtime", "npm:7.21.0"],\
             ["@types/testing-library__jest-dom", "npm:5.14.6"],\
