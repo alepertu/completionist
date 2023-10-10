@@ -30,7 +30,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["@commitlint/cli", "npm:17.6.6"],\
             ["@commitlint/config-conventional", "npm:17.6.6"],\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
+            ["@testing-library/jest-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.3"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
             ["@types/jest", "npm:29.5.2"],\
             ["@types/node", "npm:18.18.4"],\
@@ -64,10 +64,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@adobe/css-tools", [\
-        ["npm:4.2.0", {\
-          "packageLocation": "./.yarn/cache/@adobe-css-tools-npm-4.2.0-26da6de88a-dc5cc92ba3.zip/node_modules/@adobe/css-tools/",\
+        ["npm:4.3.1", {\
+          "packageLocation": "./.yarn/cache/@adobe-css-tools-npm-4.3.1-8afe87e987-ad43456379.zip/node_modules/@adobe/css-tools/",\
           "packageDependencies": [\
-            ["@adobe/css-tools", "npm:4.2.0"]\
+            ["@adobe/css-tools", "npm:4.3.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -79,7 +79,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@alepertu/completionist", "workspace:."],\
             ["@commitlint/cli", "npm:17.6.6"],\
             ["@commitlint/config-conventional", "npm:17.6.6"],\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
+            ["@testing-library/jest-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.3"],\
             ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.0.0"],\
             ["@types/jest", "npm:29.5.2"],\
             ["@types/node", "npm:18.18.4"],\
@@ -1850,19 +1850,39 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@testing-library/jest-dom", [\
-        ["npm:5.16.5", {\
-          "packageLocation": "./.yarn/cache/@testing-library-jest-dom-npm-5.16.5-b6d1f4e02f-94911f901a.zip/node_modules/@testing-library/jest-dom/",\
+        ["npm:6.1.3", {\
+          "packageLocation": "./.yarn/cache/@testing-library-jest-dom-npm-6.1.3-b27b065d9a-5bd14ba31f.zip/node_modules/@testing-library/jest-dom/",\
           "packageDependencies": [\
-            ["@testing-library/jest-dom", "npm:5.16.5"],\
-            ["@adobe/css-tools", "npm:4.2.0"],\
+            ["@testing-library/jest-dom", "npm:6.1.3"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.3", {\
+          "packageLocation": "./.yarn/__virtual__/@testing-library-jest-dom-virtual-b945a49471/0/cache/@testing-library-jest-dom-npm-6.1.3-b27b065d9a-5bd14ba31f.zip/node_modules/@testing-library/jest-dom/",\
+          "packageDependencies": [\
+            ["@testing-library/jest-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.3"],\
+            ["@adobe/css-tools", "npm:4.3.1"],\
             ["@babel/runtime", "npm:7.21.0"],\
-            ["@types/testing-library__jest-dom", "npm:5.14.6"],\
+            ["@jest/globals", null],\
+            ["@types/jest", "npm:29.5.2"],\
+            ["@types/jest__globals", null],\
+            ["@types/vitest", null],\
             ["aria-query", "npm:5.1.3"],\
             ["chalk", "npm:3.0.0"],\
             ["css.escape", "npm:1.5.1"],\
             ["dom-accessibility-api", "npm:0.5.16"],\
+            ["jest", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:29.5.0"],\
             ["lodash", "npm:4.17.21"],\
-            ["redent", "npm:3.0.0"]\
+            ["redent", "npm:3.0.0"],\
+            ["vitest", null]\
+          ],\
+          "packagePeers": [\
+            "@jest/globals",\
+            "@types/jest",\
+            "@types/jest__globals",\
+            "@types/vitest",\
+            "jest",\
+            "vitest"\
           ],\
           "linkType": "HARD"\
         }]\
