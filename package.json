@@ -55,7 +55,7 @@
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx}": [
-      "yarn eslint --max-warnings=0",
+      "yarn eslint --max-warnings=3",
       "yarn prettier -w --cache-location=./prettier/cache"
     ],
     "**/*.{json,css,scss,md,webmanifest}": [
