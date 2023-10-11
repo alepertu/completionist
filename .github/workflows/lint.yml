@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+      - name: Add deps
+        run: yarn
       - name: 🔬 Lint
         run: yarn lint:strict
 
@@ -33,6 +35,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+      - name: Add deps
+        run: yarn
       - name: Type check
         run: yarn typecheck
 
@@ -46,6 +50,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
+      - name: Add deps
+        run: yarn
       - name: 💅 Prettier check
         run: yarn format:check
 
