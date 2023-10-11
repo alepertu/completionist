@@ -10,6 +10,7 @@ export default function MainSidebar() {
       <SidebarTitle
         title='Systems Backlog'
         subtitle='Amount spent and remaining playtime stats'
+        path='/backlog'
       />
       <SidebarLink
         path='/backlog/nintendo-switch'
@@ -20,6 +21,7 @@ export default function MainSidebar() {
       <SidebarTitle
         title='Franchises Checklists'
         subtitle='Completion percentages and achivements'
+        path='/franchises'
       />
     </div>
   );
