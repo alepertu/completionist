@@ -30,7 +30,7 @@ const RAW_RUNTIME_STATE =
           ["@commitlint/config-conventional", "npm:18.4.3"],\
           ["@testing-library/jest-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.5"],\
           ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.1.2"],\
-          ["@types/jest", "npm:29.5.10"],\
+          ["@types/jest", "npm:29.5.14"],\
           ["@types/node", "npm:20.10.3"],\
           ["@types/react", "npm:18.2.42"],\
           ["@types/react-dom", "npm:18.2.17"],\
@@ -89,7 +89,7 @@ const RAW_RUNTIME_STATE =
           ["@commitlint/config-conventional", "npm:18.4.3"],\
           ["@testing-library/jest-dom", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:6.1.5"],\
           ["@testing-library/react", "virtual:3f26cbbd0b0300b8c2bd1929bec7e3c0521dc3cad569e80de29e8a5c2544adde2d8adec8d3a169f72dfd9aec0ac60c6d07e3d04635a73a2a657503535c104395#npm:14.1.2"],\
-          ["@types/jest", "npm:29.5.10"],\
+          ["@types/jest", "npm:29.5.14"],\
           ["@types/node", "npm:20.10.3"],\
           ["@types/react", "npm:18.2.42"],\
           ["@types/react-dom", "npm:18.2.17"],\
@@ -1940,7 +1940,7 @@ const RAW_RUNTIME_STATE =
           ["@adobe/css-tools", "npm:4.3.1"],\
           ["@babel/runtime", "npm:7.21.0"],\
           ["@jest/globals", null],\
-          ["@types/jest", "npm:29.5.10"],\
+          ["@types/jest", "npm:29.5.14"],\
           ["@types/jest__globals", null],\
           ["@types/vitest", null],\
           ["aria-query", "npm:5.1.3"],\
@@ -2101,10 +2101,10 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["@types/jest", [\
-      ["npm:29.5.10", {\
-        "packageLocation": "./.yarn/cache/@types-jest-npm-29.5.10-cc73227aae-f31cdc9cf8.zip/node_modules/@types/jest/",\
+      ["npm:29.5.14", {\
+        "packageLocation": "./.yarn/cache/@types-jest-npm-29.5.14-506446c38e-59ec7a9c46.zip/node_modules/@types/jest/",\
         "packageDependencies": [\
-          ["@types/jest", "npm:29.5.10"],\
+          ["@types/jest", "npm:29.5.14"],\
           ["expect", "npm:29.5.0"],\
           ["pretty-format", "npm:29.5.0"]\
         ],\
@@ -2257,7 +2257,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@types-testing-library__jest-dom-npm-5.14.9-319d22d764-e257de95a4.zip/node_modules/@types/testing-library__jest-dom/",\
         "packageDependencies": [\
           ["@types/testing-library__jest-dom", "npm:5.14.9"],\
-          ["@types/jest", "npm:29.5.10"]\
+          ["@types/jest", "npm:29.5.14"]\
         ],\
         "linkType": "HARD"\
       }]\
