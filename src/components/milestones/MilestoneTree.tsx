@@ -1,0 +1,376 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  computePercent,
+  type MilestoneNode,
+  type CompletionResult,
+} from "../../lib/completion";
+import { api } from "../../trpc/react";
+
+type MilestoneTreeNode = {
+  node: MilestoneNode;
+  completion: CompletionResult;
+};
+
+type MilestoneTreeProps = {
+  roots: MilestoneTreeNode[];
+  entryId: string;
+  accentColor?: string;
+  onProgressUpdate?: () => void;
+};
+
+type MilestoneItemProps = {
+  node: MilestoneNode;
+  completion: CompletionResult;
+  entryId: string;
+  accentColor: string;
+  depth?: number;
+  onMilestoneUpdate: () => void;
+};
+
+function MilestoneItem({
+  node,
+  completion,
+  entryId,
+  accentColor,
+  depth = 0,
+  onMilestoneUpdate,
+}: MilestoneItemProps) {
+  const [isExpanded, setIsExpanded] = useState(depth < 2);
+  const hasChildren = node.children && node.children.length > 0;
+  const utils = api.useUtils();
+
+  const incrementMutation = api.milestone.increment.useMutation({
+    onMutate: async ({ milestoneId, delta }) => {
+      // Cancel any outgoing refetches
+      await utils.milestone.tree.cancel({ entryId });
+
+      // Snapshot current data
+      const previousData = utils.milestone.tree.getData({ entryId });
+
+      // Optimistically update the cache
+      utils.milestone.tree.setData({ entryId }, (old) => {
+        if (!old) return old;
+
+        const updateNode = (n: MilestoneNode): MilestoneNode => {
+          if (n.id === milestoneId) {
+            if (n.type === "CHECKBOX") {
+              const newCurrent = (n.current ?? 0) >= 1 ? 0 : 1;
+              return { ...n, current: newCurrent };
+            } else {
+              const target = n.target ?? 0;
+              const newCurrent = Math.min(
+                Math.max((n.current ?? 0) + (delta ?? 1), 0),
+                target
+              );
+              return { ...n, current: newCurrent };
+            }
+          }
+          if (n.children) {
+            return { ...n, children: n.children.map(updateNode) };
+          }
+          return n;
+        };
+
+        return {
+          roots: old.roots.map((item) => ({
+            node: updateNode(item.node),
+            completion: computePercent(updateNode(item.node)),
+          })),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        utils.milestone.tree.setData({ entryId }, context.previousData);
+      }
+    },
+    onSettled: () => {
+      // Invalidate to refetch fresh data
+      utils.milestone.tree.invalidate({ entryId });
+      utils.completion.recompute.invalidate();
+      onMilestoneUpdate();
+    },
+  });
+
+  const handleCheckboxToggle = () => {
+    incrementMutation.mutate({ milestoneId: node.id, delta: 1 });
+  };
+
+  const handleCounterChange = (delta: number) => {
+    incrementMutation.mutate({ milestoneId: node.id, delta });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (hasChildren) {
+      if (e.key === "ArrowRight" && !isExpanded) {
+        e.preventDefault();
+        setIsExpanded(true);
+      } else if (e.key === "ArrowLeft" && isExpanded) {
+        e.preventDefault();
+        setIsExpanded(false);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setIsExpanded(!isExpanded);
+      }
+    }
+  };
+
+  const childCompletions = node.children?.map((child) => ({
+    node: child,
+    completion: computePercent(child),
+  }));
+
+  const getProgressDisplay = () => {
+    const isPending = incrementMutation.isPending;
+
+    if (node.type === "CHECKBOX") {
+      const isChecked = (node.current ?? 0) >= 1;
+      return (
+        <button
+          onClick={handleCheckboxToggle}
+          disabled={isPending}
+          className={`
+            w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+            ${isChecked ? "bg-opacity-100" : "bg-transparent"}
+            ${isPending ? "opacity-50 cursor-wait" : "cursor-pointer hover:opacity-80"}
+          `}
+          style={{
+            borderColor: accentColor,
+            backgroundColor: isChecked ? accentColor : "transparent",
+          }}
+          aria-label={isChecked ? "Uncheck milestone" : "Check milestone"}
+        >
+          {isChecked && (
+            <svg
+              className="w-3 h-3 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          )}
+        </button>
+      );
+    }
+
+    if (node.type === "COUNTER") {
+      const current = node.current ?? 0;
+      const target = node.target ?? 0;
+      const canDecrement = current > 0;
+      const canIncrement = current < target;
+
+      return (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleCounterChange(-1)}
+            disabled={isPending || !canDecrement}
+            className={`
+              w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold
+              transition-colors border
+              ${
+                canDecrement && !isPending
+                  ? "border-slate-300 text-slate-600 hover:bg-slate-100"
+                  : "border-slate-200 text-slate-300 cursor-not-allowed"
+              }
+            `}
+            aria-label="Decrease counter"
+          >
+            −
+          </button>
+          <div className="w-16 h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{
+                width: `${completion.percent}%`,
+                backgroundColor: accentColor,
+              }}
+            />
+          </div>
+          <span className="text-xs text-slate-500 font-mono min-w-[40px] text-center">
+            {current}/{target}
+          </span>
+          <button
+            onClick={() => handleCounterChange(1)}
+            disabled={isPending || !canIncrement}
+            className={`
+              w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold
+              transition-colors border
+              ${
+                canIncrement && !isPending
+                  ? "text-white hover:opacity-80"
+                  : "border-slate-200 text-slate-300 cursor-not-allowed bg-transparent"
+              }
+            `}
+            style={{
+              backgroundColor:
+                canIncrement && !isPending ? accentColor : undefined,
+              borderColor: canIncrement && !isPending ? accentColor : undefined,
+            }}
+            aria-label="Increase counter"
+          >
+            +
+          </button>
+        </div>
+      );
+    }
+
+    // Parent node (has children) - show aggregate progress
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-20 h-2 rounded-full bg-slate-200 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{
+              width: `${completion.percent}%`,
+              backgroundColor: accentColor,
+            }}
+          />
+        </div>
+        <span className="text-xs text-slate-500">
+          {Math.round(completion.percent)}%
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className="border-l-2 border-slate-200"
+      style={{ marginLeft: depth > 0 ? "1rem" : 0 }}
+      role="treeitem"
+      aria-selected={false}
+      aria-expanded={hasChildren ? isExpanded : undefined}
+      aria-level={depth + 1}
+      aria-label={`${node.title}, ${Math.round(completion.percent)}% complete`}
+    >
+      <div
+        className={`
+          flex items-center gap-3 py-2 px-3 rounded-r transition-colors
+          hover:bg-slate-50 focus-within:bg-slate-50
+        `}
+        onKeyDown={handleKeyDown}
+        tabIndex={hasChildren ? 0 : -1}
+      >
+        {/* Expand/Collapse Button */}
+        {hasChildren ? (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 rounded"
+            aria-label={
+              isExpanded ? `Collapse ${node.title}` : `Expand ${node.title}`
+            }
+            aria-expanded={isExpanded}
+            aria-controls={`children-${node.id}`}
+          >
+            <svg
+              className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        ) : (
+          <div className="w-5" />
+        )}
+
+        {/* Progress Indicator */}
+        {getProgressDisplay()}
+
+        {/* Milestone Title */}
+        <span className="flex-1 text-sm text-slate-900 font-medium">
+          {node.title}
+        </span>
+
+        {/* Completion Badge for Parents */}
+        {hasChildren && (
+          <span className="text-xs text-slate-400">
+            {completion.completed}/{completion.total}
+          </span>
+        )}
+      </div>
+
+      {/* Children */}
+      {hasChildren && isExpanded && (
+        <div className="ml-2" role="group" id={`children-${node.id}`}>
+          {childCompletions?.map((child) => (
+            <MilestoneItem
+              key={child.node.id}
+              node={child.node}
+              completion={child.completion}
+              entryId={entryId}
+              accentColor={accentColor}
+              depth={depth + 1}
+              onMilestoneUpdate={onMilestoneUpdate}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MilestoneTree({
+  roots,
+  entryId,
+  accentColor = "#00e5ff",
+  onProgressUpdate,
+}: MilestoneTreeProps) {
+  const handleMilestoneUpdate = () => {
+    onProgressUpdate?.();
+  };
+
+  if (roots.length === 0) {
+    return (
+      <div className="text-center py-8 text-slate-500">
+        <svg
+          className="w-12 h-12 mx-auto mb-3 text-slate-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+        <p className="text-sm">No milestones yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1" role="tree" aria-label="Milestone tree">
+      {roots.map((item) => (
+        <MilestoneItem
+          key={item.node.id}
+          node={item.node}
+          completion={item.completion}
+          entryId={entryId}
+          accentColor={accentColor}
+          onMilestoneUpdate={handleMilestoneUpdate}
+        />
+      ))}
+    </div>
+  );
+}

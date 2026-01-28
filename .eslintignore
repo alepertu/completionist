@@ -1,0 +1,9 @@
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.yarn/
+
+# Generated artifacts
+prisma/generated/

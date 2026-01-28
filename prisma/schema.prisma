@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Franchise {
+  id        String    @id @default(cuid())
+  name      String
+  accent    String
+  entries   Entry[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([name])
+}
+
+model Entry {
+  id          String      @id @default(cuid())
+  title       String
+  mediaType   MediaType   @default(GAME)
+  isOptional  Boolean     @default(false)
+  displayOrder Int        @default(0)
+  franchise   Franchise   @relation(fields: [franchiseId], references: [id], onDelete: Cascade)
+  franchiseId String
+  milestones  Milestone[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([franchiseId])
+  @@index([franchiseId, displayOrder])
+  @@index([franchiseId, isOptional])
+}
+
+model Milestone {
+  id          String      @id @default(cuid())
+  title       String
+  type        MilestoneType
+  target      Int?
+  current     Int         @default(0)
+  description String?
+  displayOrder Int        @default(0)
+  entry       Entry       @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  entryId     String
+  parent      Milestone?  @relation("MilestoneToMilestone", fields: [parentId], references: [id])
+  parentId    String?
+  children    Milestone[] @relation("MilestoneToMilestone")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([entryId, parentId])
+  @@index([entryId, displayOrder])
+}
+
+enum MediaType {
+  GAME
+  BOOK
+  MOVIE
+  OTHER
+}
+
+enum MilestoneType {
+  CHECKBOX
+  COUNTER
+}
+
+model UserPreferences {
+  id                    String   @id @default(cuid())
+  includeOptionalEntries Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

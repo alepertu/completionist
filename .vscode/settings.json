@@ -7,8 +7,11 @@
         "speckit.implement": true
     },
     "chat.tools.terminal.autoApprove": {
-        ".specify/scripts/bash/": true,
-        ".specify/scripts/powershell/": true
+      ".specify/scripts/bash/": false,
+      "/^cd /c/Users/apertusatti/Downloads/Dev/completionistv2 && bash \\.specify/scripts/bash/check-prerequisites\\.sh --json --require-tasks --include-tasks$/": {
+        "approve": true,
+        "matchCommandLine": true
+      }
     }
 }
 
