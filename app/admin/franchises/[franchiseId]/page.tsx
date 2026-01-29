@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
-import { MediaType } from "@prisma/client";
+import { MediaType } from "src/lib/types";
 import { AdminShell } from "src/components/admin/AdminShell";
 import { ConfirmDeleteModal } from "src/components/admin/modals/ConfirmDeleteModal";
 import { api } from "src/trpc/react";

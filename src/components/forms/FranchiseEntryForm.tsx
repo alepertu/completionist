@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MediaType } from "@prisma/client";
+import { MediaType } from "../../lib/types";
 
 // Color presets for accent picker
 const ACCENT_PRESETS = [
