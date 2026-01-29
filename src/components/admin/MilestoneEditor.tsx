@@ -57,6 +57,13 @@ export function MilestoneEditor({ entryId }: MilestoneEditorProps) {
   const [dupTargets, setDupTargets] = useState<Record<string, string | null>>(
     {}
   );
+  const [showBatchLoad, setShowBatchLoad] = useState(false);
+  const [batchText, setBatchText] = useState("");
+  const [batchType, setBatchType] = useState<"CHECKBOX" | "COUNTER">(
+    "CHECKBOX"
+  );
+  const [batchTarget, setBatchTarget] = useState<number | null>(null);
+  const [batchParentId, setBatchParentId] = useState<string | null>(null);
 
   const createMutation = api.milestone.create.useMutation({
     onSuccess: () => {
@@ -78,6 +85,14 @@ export function MilestoneEditor({ entryId }: MilestoneEditorProps) {
   });
   const duplicateMutation = api.milestone.duplicateSubtree.useMutation({
     onSuccess: () => ctx.milestone.treeAdmin.invalidate({ entryId }),
+  });
+
+  const batchCreateMutation = api.milestone.batchCreate.useMutation({
+    onSuccess: () => {
+      setShowBatchLoad(false);
+      setBatchText("");
+      ctx.milestone.treeAdmin.invalidate({ entryId });
+    },
   });
 
   const allNodes = useMemo(() => flatten(roots, []), [roots]);
@@ -406,6 +421,27 @@ export function MilestoneEditor({ entryId }: MilestoneEditorProps) {
         >
           Add milestone
         </button>
+        <button
+          type="button"
+          onClick={() => setShowBatchLoad(true)}
+          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+          title="Batch load milestones"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+            />
+          </svg>
+          Batch
+        </button>
         {isFetching ? (
           <span className="text-xs text-slate-500" role="status">
             Syncing…
@@ -426,6 +462,174 @@ export function MilestoneEditor({ entryId }: MilestoneEditorProps) {
       {roots.length > 0 ? (
         <div className="space-y-4">{roots.map((node) => renderNode(node))}</div>
       ) : null}
+
+      {/* Batch Load Modal */}
+      {showBatchLoad && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
+            <div className="border-b border-slate-200 px-4 py-3">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Batch Load Milestones
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Add multiple milestones at once. One milestone per line.
+              </p>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const lines = batchText
+                  .split("\n")
+                  .map((l) => l.trim())
+                  .filter((l) => l.length > 0);
+                if (lines.length === 0) return;
+                batchCreateMutation.mutate({
+                  entryId,
+                  parentId: batchParentId,
+                  titles: lines,
+                  type: batchType,
+                  target:
+                    batchType === "COUNTER"
+                      ? (batchTarget ?? undefined)
+                      : undefined,
+                });
+              }}
+            >
+              <div className="px-4 py-3 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    Type:
+                    <select
+                      value={batchType}
+                      onChange={(e) =>
+                        setBatchType(e.target.value as "CHECKBOX" | "COUNTER")
+                      }
+                      className="rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-slate-400 focus:outline-none"
+                      disabled={batchCreateMutation.isPending}
+                    >
+                      <option value="CHECKBOX">checkbox</option>
+                      <option value="COUNTER">counter</option>
+                    </select>
+                  </label>
+                  {batchType === "COUNTER" && (
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                      Target:
+                      <input
+                        type="number"
+                        value={batchTarget ?? ""}
+                        onChange={(e) =>
+                          setBatchTarget(
+                            e.target.value ? Number(e.target.value) : null
+                          )
+                        }
+                        placeholder="e.g. 100"
+                        className="w-20 rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-slate-400 focus:outline-none"
+                        disabled={batchCreateMutation.isPending}
+                      />
+                    </label>
+                  )}
+                  <label className="flex items-center gap-2 text-sm text-slate-600">
+                    Parent:
+                    <select
+                      value={batchParentId ?? "root"}
+                      onChange={(e) =>
+                        setBatchParentId(
+                          e.target.value === "root" ? null : e.target.value
+                        )
+                      }
+                      className="rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-slate-400 focus:outline-none"
+                      disabled={batchCreateMutation.isPending}
+                    >
+                      <option value="root">(root)</option>
+                      {allNodes.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          {n.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <textarea
+                  value={batchText}
+                  onChange={(e) => setBatchText(e.target.value)}
+                  placeholder={"Milestone 1\nMilestone 2\nMilestone 3"}
+                  rows={10}
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-mono focus:border-slate-400 focus:outline-none resize-none"
+                  autoFocus
+                  disabled={batchCreateMutation.isPending}
+                />
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>
+                    {
+                      batchText
+                        .split("\n")
+                        .map((l) => l.trim())
+                        .filter((l) => l.length > 0).length
+                    }{" "}
+                    milestone(s) to create
+                  </span>
+                  <span>One milestone per line</span>
+                </div>
+                {batchCreateMutation.error && (
+                  <p className="text-sm text-red-600" role="alert">
+                    {batchCreateMutation.error.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBatchLoad(false);
+                    setBatchText("");
+                    batchCreateMutation.reset();
+                  }}
+                  disabled={batchCreateMutation.isPending}
+                  className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    batchCreateMutation.isPending ||
+                    batchText
+                      .split("\n")
+                      .map((l) => l.trim())
+                      .filter((l) => l.length > 0).length === 0
+                  }
+                  className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+                >
+                  {batchCreateMutation.isPending && (
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  )}
+                  Create milestones
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

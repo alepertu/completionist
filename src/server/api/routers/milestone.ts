@@ -362,6 +362,48 @@ export const milestoneRouter = router({
       };
     }),
 
+  // Set counter to a specific value (for slider/direct input)
+  setCurrent: publicProcedure
+    .input(
+      z.object({
+        milestoneId: z.string(),
+        value: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const milestone = await prisma.milestone.findUnique({
+        where: { id: input.milestoneId },
+      });
+
+      if (!milestone) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Milestone not found",
+        });
+      }
+
+      let newCurrent: number;
+
+      if (milestone.type === "CHECKBOX") {
+        // For checkboxes, treat any value >= 1 as checked
+        newCurrent = input.value >= 1 ? 1 : 0;
+      } else {
+        // Counter: clamp to valid range
+        const target = milestone.target ?? 0;
+        newCurrent = clamp(input.value, 0, target);
+      }
+
+      const updated = await prisma.milestone.update({
+        where: { id: input.milestoneId },
+        data: { current: newCurrent },
+      });
+
+      return {
+        milestone: updated,
+        previousCurrent: milestone.current,
+      };
+    }),
+
   duplicateSubtree: publicProcedure
     .input(
       z.object({ milestoneId: z.string(), newParentId: z.string().nullish() })
@@ -455,5 +497,68 @@ export const milestoneRouter = router({
       await createNode(root, input.newParentId ?? null);
 
       return { success: true };
+    }),
+
+  batchCreate: publicProcedure
+    .input(
+      z.object({
+        entryId: z.string(),
+        parentId: z.string().nullish(),
+        titles: z.array(z.string().min(1)),
+        type: z.enum(["CHECKBOX", "COUNTER"]).default("CHECKBOX"),
+        target: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      if (input.titles.length === 0) {
+        return { milestones: [], count: 0 };
+      }
+
+      // Validate counter target
+      if (input.type === "COUNTER" && (!input.target || input.target <= 0)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Counter target must be > 0",
+        });
+      }
+
+      // Validate parent if provided
+      if (input.parentId) {
+        const parent = await prisma.milestone.findUnique({
+          where: { id: input.parentId },
+        });
+        if (!parent || parent.entryId !== input.entryId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid parent",
+          });
+        }
+      }
+
+      const maxOrder = await prisma.milestone.aggregate({
+        where: { entryId: input.entryId, parentId: input.parentId ?? null },
+        _max: { displayOrder: true },
+      });
+      let nextOrder = (maxOrder._max.displayOrder ?? 0) + 10;
+
+      const createdMilestones = await prisma.$transaction(
+        input.titles.map((title) => {
+          const order = nextOrder;
+          nextOrder += 10;
+          return prisma.milestone.create({
+            data: {
+              entryId: input.entryId,
+              parentId: input.parentId ?? null,
+              title: title.trim(),
+              type: input.type,
+              target: input.type === "COUNTER" ? input.target : null,
+              current: 0,
+              displayOrder: order,
+            },
+          });
+        })
+      );
+
+      return { milestones: createdMilestones, count: createdMilestones.length };
     }),
 });

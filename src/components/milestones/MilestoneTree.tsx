@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   computePercent,
   type MilestoneNode,
@@ -40,6 +40,62 @@ function MilestoneItem({
   const [isExpanded, setIsExpanded] = useState(depth < 2);
   const hasChildren = node.children && node.children.length > 0;
   const utils = api.useUtils();
+
+  // Local state for counter with debounce
+  const [localCurrent, setLocalCurrent] = useState(node.current ?? 0);
+  const [isEditing, setIsEditing] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingValueRef = useRef<number | null>(null);
+
+  // Sync local state when node.current changes from server
+  useEffect(() => {
+    if (pendingValueRef.current === null) {
+      setLocalCurrent(node.current ?? 0);
+    }
+  }, [node.current]);
+
+  const setCounterMutation = api.milestone.setCurrent.useMutation({
+    onMutate: async ({ milestoneId, value }) => {
+      await utils.milestone.tree.cancel({ entryId });
+      const previousData = utils.milestone.tree.getData({ entryId });
+
+      utils.milestone.tree.setData({ entryId }, (old) => {
+        if (!old) return old;
+
+        const updateNode = (n: MilestoneNode): MilestoneNode => {
+          if (n.id === milestoneId) {
+            const target = n.target ?? 0;
+            const newCurrent = Math.min(Math.max(value, 0), target);
+            return { ...n, current: newCurrent };
+          }
+          if (n.children) {
+            return { ...n, children: n.children.map(updateNode) };
+          }
+          return n;
+        };
+
+        return {
+          roots: old.roots.map((item) => ({
+            node: updateNode(item.node),
+            completion: computePercent(updateNode(item.node)),
+          })),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousData) {
+        utils.milestone.tree.setData({ entryId }, context.previousData);
+      }
+    },
+    onSettled: () => {
+      pendingValueRef.current = null;
+      utils.milestone.tree.invalidate({ entryId });
+      utils.completion.recompute.invalidate();
+      onMilestoneUpdate();
+    },
+  });
 
   const incrementMutation = api.milestone.increment.useMutation({
     onMutate: async ({ milestoneId, delta }) => {
@@ -101,8 +157,64 @@ function MilestoneItem({
     incrementMutation.mutate({ milestoneId: node.id, delta: 1 });
   };
 
+  // Debounced counter update - batches rapid changes
+  const debouncedSetCounter = useCallback(
+    (value: number) => {
+      const target = node.target ?? 0;
+      const clampedValue = Math.min(Math.max(value, 0), target);
+      setLocalCurrent(clampedValue);
+      pendingValueRef.current = clampedValue;
+
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Set new debounce timer (500ms delay)
+      debounceTimerRef.current = setTimeout(() => {
+        if (pendingValueRef.current !== null) {
+          setCounterMutation.mutate({
+            milestoneId: node.id,
+            value: pendingValueRef.current,
+          });
+        }
+      }, 500);
+    },
+    [node.id, node.target, setCounterMutation]
+  );
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleCounterChange = (delta: number) => {
-    incrementMutation.mutate({ milestoneId: node.id, delta });
+    debouncedSetCounter(localCurrent + delta);
+  };
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    debouncedSetCounter(parseInt(e.target.value, 10));
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      debouncedSetCounter(value);
+    }
+  };
+
+  const handleInputBlur = () => {
+    setIsEditing(false);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setIsEditing(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -165,21 +277,24 @@ function MilestoneItem({
     }
 
     if (node.type === "COUNTER") {
-      const current = node.current ?? 0;
       const target = node.target ?? 0;
-      const canDecrement = current > 0;
-      const canIncrement = current < target;
+      const isPendingCounter =
+        setCounterMutation.isPending || pendingValueRef.current !== null;
+      const canDecrement = localCurrent > 0;
+      const canIncrement = localCurrent < target;
+      const localPercent = target > 0 ? (localCurrent / target) * 100 : 0;
 
       return (
         <div className="flex items-center gap-2">
+          {/* Decrement button */}
           <button
             onClick={() => handleCounterChange(-1)}
-            disabled={isPending || !canDecrement}
+            disabled={!canDecrement}
             className={`
               w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold
-              transition-colors border
+              transition-colors border shrink-0
               ${
-                canDecrement && !isPending
+                canDecrement
                   ? "border-slate-300 text-slate-600 hover:bg-slate-100"
                   : "border-slate-200 text-slate-300 cursor-not-allowed"
               }
@@ -188,34 +303,63 @@ function MilestoneItem({
           >
             −
           </button>
-          <div className="w-16 h-2 rounded-full bg-slate-200 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${completion.percent}%`,
-                backgroundColor: accentColor,
-              }}
+
+          {/* Slider for easy adjustment */}
+          <input
+            type="range"
+            min={0}
+            max={target}
+            value={localCurrent}
+            onChange={handleSliderChange}
+            className="w-20 h-2 rounded-full appearance-none cursor-pointer"
+            style={{
+              background: `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${localPercent}%, #e2e8f0 ${localPercent}%, #e2e8f0 100%)`,
+            }}
+            aria-label={`Progress: ${localCurrent} of ${target}`}
+          />
+
+          {/* Editable number input */}
+          {isEditing ? (
+            <input
+              type="number"
+              min={0}
+              max={target}
+              value={localCurrent}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={handleInputKeyDown}
+              autoFocus
+              className="w-16 text-xs text-center font-mono border border-slate-300 rounded px-1 py-0.5"
             />
-          </div>
-          <span className="text-xs text-slate-500 font-mono min-w-[40px] text-center">
-            {current}/{target}
-          </span>
+          ) : (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-xs text-slate-500 font-mono min-w-[50px] text-center hover:bg-slate-100 rounded px-1 py-0.5 transition-colors"
+              title="Click to edit value directly"
+            >
+              {localCurrent}/{target}
+              {isPendingCounter && (
+                <span className="ml-1 text-slate-400">...</span>
+              )}
+            </button>
+          )}
+
+          {/* Increment button */}
           <button
             onClick={() => handleCounterChange(1)}
-            disabled={isPending || !canIncrement}
+            disabled={!canIncrement}
             className={`
               w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold
-              transition-colors border
+              transition-colors border shrink-0
               ${
-                canIncrement && !isPending
+                canIncrement
                   ? "text-white hover:opacity-80"
                   : "border-slate-200 text-slate-300 cursor-not-allowed bg-transparent"
               }
             `}
             style={{
-              backgroundColor:
-                canIncrement && !isPending ? accentColor : undefined,
-              borderColor: canIncrement && !isPending ? accentColor : undefined,
+              backgroundColor: canIncrement ? accentColor : undefined,
+              borderColor: canIncrement ? accentColor : undefined,
             }}
             aria-label="Increase counter"
           >

@@ -316,4 +316,43 @@ export const entryRouter = router({
       );
       return { success: true };
     }),
+
+  batchCreate: publicProcedure
+    .input(
+      z.object({
+        franchiseId: z.string(),
+        titles: z.array(z.string().min(1)),
+        mediaType: z.nativeEnum(MediaType).default(MediaType.GAME),
+        isOptional: z.boolean().optional().default(false),
+      })
+    )
+    .mutation(async ({ input }) => {
+      if (input.titles.length === 0) {
+        return { entries: [], count: 0 };
+      }
+
+      const maxOrder = await prisma.entry.aggregate({
+        where: { franchiseId: input.franchiseId },
+        _max: { displayOrder: true },
+      });
+      let nextOrder = (maxOrder._max.displayOrder ?? 0) + 10;
+
+      const createdEntries = await prisma.$transaction(
+        input.titles.map((title) => {
+          const order = nextOrder;
+          nextOrder += 10;
+          return prisma.entry.create({
+            data: {
+              franchiseId: input.franchiseId,
+              title: title.trim(),
+              mediaType: input.mediaType,
+              isOptional: input.isOptional,
+              displayOrder: order,
+            },
+          });
+        })
+      );
+
+      return { entries: createdEntries, count: createdEntries.length };
+    }),
 });

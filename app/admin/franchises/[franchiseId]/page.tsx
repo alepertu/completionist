@@ -34,6 +34,10 @@ export default function FranchiseEntriesPage() {
   const [showOptional, setShowOptional] = useState(true);
   const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [showBatchLoad, setShowBatchLoad] = useState(false);
+  const [batchMediaType, setBatchMediaType] = useState<MediaType>(
+    MediaType.GAME
+  );
 
   const ctx = api.useContext();
   const { data, isLoading, error } = api.entry.listByFranchiseAdmin.useQuery({
@@ -78,6 +82,13 @@ export default function FranchiseEntriesPage() {
 
   const reorderMutation = api.entry.reorder.useMutation({
     onSuccess: () => ctx.entry.listByFranchiseAdmin.invalidate({ franchiseId }),
+  });
+
+  const batchCreateMutation = api.entry.batchCreate.useMutation({
+    onSuccess: () => {
+      setShowBatchLoad(false);
+      ctx.entry.listByFranchiseAdmin.invalidate({ franchiseId });
+    },
   });
 
   const entries = useMemo(() => data?.entries ?? [], [data?.entries]);
@@ -232,6 +243,27 @@ export default function FranchiseEntriesPage() {
               Cancel
             </button>
           ) : null}
+          <button
+            type="button"
+            onClick={() => setShowBatchLoad(true)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-1.5"
+            title="Batch load entries"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+              />
+            </svg>
+            Batch
+          </button>
         </form>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -420,7 +452,152 @@ export default function FranchiseEntriesPage() {
             </div>
           }
         />
+
+        {showBatchLoad && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-lg rounded-lg bg-white shadow-xl">
+              <div className="border-b border-slate-200 px-4 py-3">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Batch Load Entries
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  Add multiple entries at once. One entry per line.
+                </p>
+              </div>
+              <BatchLoadModalContent
+                mediaType={batchMediaType}
+                onMediaTypeChange={setBatchMediaType}
+                loading={batchCreateMutation.isPending}
+                error={batchCreateMutation.error?.message}
+                onCancel={() => {
+                  setShowBatchLoad(false);
+                  batchCreateMutation.reset();
+                }}
+                onSubmit={(titles) =>
+                  batchCreateMutation.mutate({
+                    franchiseId,
+                    titles,
+                    mediaType: batchMediaType,
+                  })
+                }
+              />
+            </div>
+          </div>
+        )}
       </div>
     </AdminShell>
+  );
+}
+
+function BatchLoadModalContent({
+  mediaType,
+  onMediaTypeChange,
+  loading,
+  error,
+  onCancel,
+  onSubmit,
+}: {
+  mediaType: MediaType;
+  onMediaTypeChange: (type: MediaType) => void;
+  loading: boolean;
+  error?: string | null;
+  onCancel: () => void;
+  onSubmit: (titles: string[]) => void;
+}) {
+  const [text, setText] = useState("");
+
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const lineCount = lines.length;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (lines.length === 0) return;
+    onSubmit(lines);
+    setText("");
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="px-4 py-3 space-y-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-slate-600">Media type:</label>
+          <select
+            value={mediaType}
+            onChange={(e) => onMediaTypeChange(e.target.value as MediaType)}
+            className="rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-slate-400 focus:outline-none"
+            disabled={loading}
+          >
+            {mediaOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt.toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={"Game 1\nGame 2\nGame 3"}
+          rows={10}
+          className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm font-mono focus:border-slate-400 focus:outline-none resize-none"
+          autoFocus
+          disabled={loading}
+        />
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>
+            {lineCount} entr{lineCount !== 1 ? "ies" : "y"} to create
+          </span>
+          <span>One entry per line</span>
+        </div>
+        {error && (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading || lineCount === 0}
+          className="rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 flex items-center gap-2"
+        >
+          {loading && (
+            <svg
+              className="animate-spin h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          )}
+          Create {lineCount} entr{lineCount !== 1 ? "ies" : "y"}
+        </button>
+      </div>
+    </form>
   );
 }

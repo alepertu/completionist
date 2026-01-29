@@ -31,7 +31,8 @@ export function computePercent(node: MilestoneNode): CompletionResult {
     const target = node.target ?? 0;
     const current = clamp(node.current ?? 0, 0, target);
     const percent = target > 0 ? (current / target) * 100 : 0;
-    return { id: node.id, percent, completed: current, total: target };
+    const done = target > 0 && current >= target;
+    return { id: node.id, percent, completed: done ? 1 : 0, total: 1 };
   }
 
   // Checkbox

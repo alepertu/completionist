@@ -2,7 +2,7 @@
 
 import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { api } from "../../../src/trpc/react";
 import { useTheme } from "../../../src/context/theme-context";
 import { FranchiseSidebar } from "../../../src/components/sidebar/FranchiseSidebar";
@@ -45,11 +45,33 @@ export default function FranchiseLayout({
   );
   const entries = entriesData?.entries ?? [];
 
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const activeEntryRef = useRef<HTMLAnchorElement>(null);
+
+  // Scroll active entry into center view
+  useEffect(() => {
+    if (activeEntryRef.current && carouselRef.current) {
+      const carousel = carouselRef.current;
+      const activeEntry = activeEntryRef.current;
+
+      const carouselRect = carousel.getBoundingClientRect();
+      const entryRect = activeEntry.getBoundingClientRect();
+
+      const scrollLeft =
+        activeEntry.offsetLeft - carouselRect.width / 2 + entryRect.width / 2;
+
+      carousel.scrollTo({
+        left: scrollLeft,
+        behavior: "smooth",
+      });
+    }
+  }, [pathname, entries]);
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <FranchiseSidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Entry Carousel Header */}
         <header className="bg-white border-b border-slate-200 px-6 py-4">
           <div className="flex items-center justify-between mb-4">
@@ -67,9 +89,9 @@ export default function FranchiseLayout({
           </div>
 
           {/* Entry Carousel */}
-          <div className="relative">
+          <div className="relative overflow-hidden -mx-6">
             {isLoading && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <div className="flex gap-3 overflow-x-auto pb-2 px-6">
                 {[...Array(4)].map((_, i) => (
                   <div
                     key={i}
@@ -80,13 +102,13 @@ export default function FranchiseLayout({
             )}
 
             {error && (
-              <div className="text-red-500 text-sm">
+              <div className="text-red-500 text-sm px-6">
                 Error loading entries: {error.message}
               </div>
             )}
 
             {!isLoading && entries.length === 0 && (
-              <div className="text-slate-500 text-sm py-4">
+              <div className="text-slate-500 text-sm py-4 px-6">
                 No entries found.{" "}
                 <Link
                   href={`/admin/franchises/${franchiseId}`}
@@ -98,25 +120,41 @@ export default function FranchiseLayout({
             )}
 
             {entries.length > 0 && (
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300">
+              <div
+                ref={carouselRef}
+                className="flex gap-3 overflow-x-auto overflow-y-hidden pb-2 scrollbar-thin scrollbar-thumb-slate-300 scroll-smooth max-w-full"
+                style={{
+                  scrollbarWidth: "thin",
+                  scrollPaddingInline: "50%",
+                }}
+              >
+                {/* Left spacer for centering first item */}
+                <div
+                  className="shrink-0"
+                  style={{ width: "calc(50vw - 11rem - 128px)" }}
+                  aria-hidden="true"
+                />
+
                 {entries.map((entry) => {
                   const isActive = pathname?.includes(`/entries/${entry.id}`);
 
                   return (
                     <Link
                       key={entry.id}
+                      ref={isActive ? activeEntryRef : undefined}
                       href={`/franchises/${franchiseId}/entries/${entry.id}`}
                       className={`
                         shrink-0 w-44 p-3 rounded-lg border transition-all
                         ${
                           isActive
-                            ? "border-2 bg-white shadow-md"
+                            ? "border-2 bg-white shadow-lg"
                             : "border-slate-200 bg-slate-50 hover:bg-white hover:shadow"
                         }
                       `}
                       style={{
                         ...(isActive && {
                           borderColor: franchise?.accent ?? "#00e5ff",
+                          boxShadow: `0 4px 14px -2px ${franchise?.accent ?? "#00e5ff"}40`,
                         }),
                       }}
                     >
@@ -153,6 +191,13 @@ export default function FranchiseLayout({
                     </Link>
                   );
                 })}
+
+                {/* Right spacer for centering last item */}
+                <div
+                  className="shrink-0"
+                  style={{ width: "calc(50vw - 11rem - 128px)" }}
+                  aria-hidden="true"
+                />
               </div>
             )}
           </div>

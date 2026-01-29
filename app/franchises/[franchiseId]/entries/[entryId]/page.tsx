@@ -114,8 +114,20 @@ export default function EntryPage() {
 
         <div className="p-4">
           {milestonesLoading && (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin w-6 h-6 border-3 border-slate-300 border-t-cyan-500 rounded-full" />
+            <div className="space-y-3">
+              {/* Skeleton loading state */}
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 px-3">
+                  <div className="w-5 h-5 rounded bg-slate-200 animate-pulse" />
+                  <div className="flex-1 space-y-2">
+                    <div
+                      className="h-4 bg-slate-200 rounded animate-pulse"
+                      style={{ width: `${60 + Math.random() * 30}%` }}
+                    />
+                    <div className="h-2 bg-slate-100 rounded animate-pulse w-20" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
