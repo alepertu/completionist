@@ -15,7 +15,7 @@ export function CompletionSummary({
   percent,
   completed,
   total,
-  accentColor = "#00e5ff",
+  accentColor = "#64748b",
   subtitle,
   size = "md",
 }: CompletionSummaryProps) {
@@ -123,7 +123,7 @@ type CompletionGridProps = {
 
 export function CompletionGrid({
   items,
-  accentColor = "#00e5ff",
+  accentColor = "#64748b",
 }: CompletionGridProps) {
   if (items.length === 0) {
     return (

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { ThemeProvider } from "../src/context/theme-context";
+import { MobileMenuProvider } from "../src/context/mobile-menu-context";
 import { api, createClient } from "../src/trpc/react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,7 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <api.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <MobileMenuProvider>{children}</MobileMenuProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </api.Provider>
   );

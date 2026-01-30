@@ -59,6 +59,23 @@ User creates or edits franchises, entries, and milestones (including nesting and
 2. **Given** a new milestone, **When** the user selects type checkbox or counter and sets a counter target, **Then** the milestone is created within the chosen parent level and shown in the checklist.
 3. **Given** an existing franchise, **When** the user changes the accent color, **Then** the dashboard updates progress bars, active states, and checkmarks to the new color without affecting other franchises.
 
+### User Story 4 - Use the app on mobile devices (Priority: P2)
+
+User accesses the completionist tracker on a smartphone or tablet and navigates franchises, entries, and milestones with a responsive interface that adapts to the smaller screen.
+
+**Why this priority**: Mobile access is essential for logging progress on-the-go while playing, reading, or watching; a non-responsive UI would make the app unusable for a significant portion of user sessions.
+
+**Independent Test**: With existing franchise and entry data, user on a mobile device can open the hidden menu, select a franchise, swipe or tap through the carousel, and expand milestones without horizontal scrolling or unreadable text.
+
+**Acceptance Scenarios**:
+
+1. **Given** the user opens the app on a screen narrower than 768px, **When** the page loads, **Then** the sidebar collapses to a hidden menu accessible via a hamburger icon.
+2. **Given** the sidebar is collapsed, **When** the user taps the hamburger icon, **Then** the sidebar slides in as an overlay showing all franchises, and tapping outside or selecting a franchise closes it.
+3. **Given** a small screen, **When** the user views the entry carousel, **Then** entries display in a touch-friendly horizontal scroll or swipe layout that fits within the viewport width.
+4. **Given** a deeply nested milestone tree on mobile, **When** the user expands levels, **Then** the tree remains navigable with proper indentation scaled to screen size and touch targets of at least 44×44 pixels.
+
+---
+
 ### Edge Cases
 
 - Empty state: franchise with no entries or entry with no milestones should show 0% completion and a prompt to add items without errors.
@@ -66,6 +83,9 @@ User creates or edits franchises, entries, and milestones (including nesting and
 - Counter milestones do not allow negative values and cap at the defined target; attempts beyond the target keep the value at target and maintain completion at 100%.
 - Deleting or reparenting a milestone with children recalculates progress to exclude/move that subtree and preserves child definitions.
 - Accent colors that would reduce contrast trigger an automatic fallback or warning so text and progress indicators stay legible on the white UI.
+- On mobile, the hidden sidebar menu must remain accessible when the carousel or milestone tree is scrolled; the hamburger icon stays fixed.
+- Landscape orientation on mobile should use available width efficiently without triggering the full desktop sidebar layout.
+- Touch interactions on milestone checkboxes and counters should not conflict with swipe gestures for the carousel or sidebar.
 
 ## Requirements _(mandatory)_
 
@@ -86,6 +106,10 @@ User creates or edits franchises, entries, and milestones (including nesting and
 - **FR-013**: Users can flag entries as optional/recommended; franchise completion can include or exclude optional entries based on a user preference in the profile/settings page.
 - **FR-014**: Profile/settings page exposes a toggle that switches franchise completion between including optional entries (option A) or excluding them from the denominator (option B); changing the toggle recalculates completion immediately.
 - **FR-015**: Binary media entries (e.g., books, movies) auto-create a single checkbox milestone representing completion; deleting this milestone removes completion, and re-adding restores the binary state so roll-up math stays consistent.
+- **FR-016**: The interface is fully responsive; on screens narrower than 768px, the vertical sidebar collapses to a hidden menu accessible via a hamburger icon that triggers a slide-in overlay.
+- **FR-017**: On small screens, the entry carousel adapts to a horizontal swipe/scroll layout that fits within the viewport width and supports touch gestures.
+- **FR-018**: The milestone tree adapts to small screens with proper indentation scaling, and all interactive elements (checkboxes, counters, expand/collapse) maintain touch-friendly target sizes of at least 44×44 pixels.
+- **FR-019**: Responsive layout changes preserve all functionality available on desktop; no features are hidden or disabled on mobile.
 
 ### Key Entities _(include if feature involves data)_
 
@@ -113,3 +137,7 @@ User creates or edits franchises, entries, and milestones (including nesting and
 - **SC-005**: Closing and reopening the app restores the last selected franchise/entry and previously recorded progress in 5 consecutive trials with no data loss.
 - **SC-006**: Toggling the optional-entry inclusion setting in the profile page recalculates franchise completion within a perceived 1 second and reflects the chosen mode across all franchises.
 - **SC-007**: Creating a binary media entry auto-adds a single checkbox milestone and marks franchise/entry completion accurately when toggled in 5 consecutive trials.
+- **SC-008**: On screens narrower than 768px, the sidebar collapses to a hidden menu in 100% of tested devices (iOS, Android) and opens/closes within 300ms when the hamburger icon is tapped.
+- **SC-009**: Users can complete the same setup-and-update flow on a mobile device (smartphone) as on desktop in under 15 minutes without horizontal scrolling or misclicks due to small touch targets.
+- **SC-010**: The entry carousel supports swipe navigation on touch devices, with entries remaining fully visible within viewport width on screens as narrow as 320px.
+- **SC-011**: Milestone tree touch targets meet the 44×44 pixel minimum in 100% of interactive elements when tested on a 375px-wide screen.

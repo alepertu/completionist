@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { api } from "../../trpc/react";
 import { useTheme } from "../../context/theme-context";
+import { useMobileMenu } from "../../context/mobile-menu-context";
 
 type FranchiseItem = {
   id: string;
@@ -12,9 +13,13 @@ type FranchiseItem = {
   completionPercent: number;
 };
 
-export function FranchiseSidebar() {
+/**
+ * Inner content of the sidebar - reusable in both desktop and mobile views
+ */
+export function FranchiseSidebarContent() {
   const pathname = usePathname();
   const { setAccent, includeOptionalEntries } = useTheme();
+  const { close } = useMobileMenu();
 
   const { data, isLoading, error } = api.franchise.list.useQuery({
     includeOptionalEntries,
@@ -22,12 +27,13 @@ export function FranchiseSidebar() {
 
   const handleFranchiseClick = (franchise: FranchiseItem) => {
     setAccent(franchise.accent);
+    close(); // Close mobile menu when selecting a franchise
   };
 
   if (isLoading) {
     return (
-      <aside className="w-64 min-h-screen bg-slate-900 text-white p-4 flex flex-col">
-        <div className="mb-6">
+      <div className="w-64 h-full bg-slate-900 text-white p-4 flex flex-col">
+        <div className="mb-6 pt-12 md:pt-0">
           <Link href="/" className="text-lg font-semibold tracking-wide">
             Completionist
           </Link>
@@ -40,30 +46,31 @@ export function FranchiseSidebar() {
             />
           ))}
         </div>
-      </aside>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <aside className="w-64 min-h-screen bg-slate-900 text-white p-4 flex flex-col">
-        <div className="mb-6">
+      <div className="w-64 h-full bg-slate-900 text-white p-4 flex flex-col">
+        <div className="mb-6 pt-12 md:pt-0">
           <Link href="/" className="text-lg font-semibold tracking-wide">
             Completionist
           </Link>
         </div>
         <div className="text-red-400 text-sm">Error loading franchises</div>
-      </aside>
+      </div>
     );
   }
 
   const franchises = data?.franchises ?? [];
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 text-white p-4 flex flex-col">
-      <div className="mb-6">
+    <div className="w-64 h-full bg-slate-900 text-white p-4 flex flex-col">
+      <div className="mb-6 pt-12 md:pt-0">
         <Link
           href="/"
+          onClick={close}
           className="text-lg font-semibold tracking-wide hover:text-slate-300 transition"
         >
           Completionist
@@ -73,7 +80,11 @@ export function FranchiseSidebar() {
       {franchises.length === 0 ? (
         <div className="text-slate-400 text-sm">
           No franchises yet.{" "}
-          <Link href="/admin" className="text-cyan-400 underline">
+          <Link
+            href="/admin"
+            onClick={close}
+            className="text-cyan-400 underline"
+          >
             Add one
           </Link>
         </div>
@@ -90,7 +101,7 @@ export function FranchiseSidebar() {
                 href={`/franchises/${franchise.id}`}
                 onClick={() => handleFranchiseClick(franchise)}
                 className={`
-                  group block rounded-lg p-3 transition-all
+                  group block rounded-lg p-3 transition-all touch-target
                   ${
                     isActive
                       ? "bg-slate-800 ring-1 ring-inset"
@@ -137,7 +148,8 @@ export function FranchiseSidebar() {
       <div className="mt-auto pt-4 border-t border-slate-800">
         <Link
           href="/admin"
-          className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition"
+          onClick={close}
+          className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition touch-target"
         >
           <svg
             className="w-4 h-4"
@@ -161,6 +173,17 @@ export function FranchiseSidebar() {
           Admin Panel
         </Link>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Desktop-only sidebar wrapper - hidden on mobile
+ */
+export function FranchiseSidebar() {
+  return (
+    <aside className="hidden md:flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+      <FranchiseSidebarContent />
     </aside>
   );
 }

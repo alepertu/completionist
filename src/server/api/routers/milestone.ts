@@ -22,6 +22,78 @@ type MilestoneIdParent = { id: string; parentId: string | null };
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
+// Helper to get all descendant IDs of a milestone
+async function getDescendantIds(milestoneId: string, entryId: string): Promise<string[]> {
+  const allMilestones = await prisma.milestone.findMany({
+    where: { entryId },
+    select: { id: true, parentId: true },
+  });
+
+  const childrenMap = new Map<string | null, string[]>();
+  for (const m of allMilestones) {
+    const siblings = childrenMap.get(m.parentId) ?? [];
+    siblings.push(m.id);
+    childrenMap.set(m.parentId, siblings);
+  }
+
+  const descendants: string[] = [];
+  const queue = childrenMap.get(milestoneId) ?? [];
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    descendants.push(id);
+    const children = childrenMap.get(id) ?? [];
+    queue.push(...children);
+  }
+
+  return descendants;
+}
+
+// Helper to mark all descendants as complete
+async function completeDescendants(milestoneId: string, entryId: string, complete: boolean): Promise<void> {
+  const descendantIds = await getDescendantIds(milestoneId, entryId);
+  if (descendantIds.length === 0) return;
+
+  if (complete) {
+    // For completing: we need to handle CHECKBOX and COUNTER differently
+    // First, update all CHECKBOX milestones to current=1
+    await prisma.milestone.updateMany({
+      where: { 
+        id: { in: descendantIds },
+        type: "CHECKBOX"
+      },
+      data: { current: 1 },
+    });
+
+    // For COUNTER milestones, we need to set current = target for each
+    // Get all counter milestones
+    const counterMilestones = await prisma.milestone.findMany({
+      where: { 
+        id: { in: descendantIds },
+        type: "COUNTER"
+      },
+      select: { id: true, target: true },
+    });
+
+    // Update each counter to its target value
+    if (counterMilestones.length > 0) {
+      await Promise.all(
+        counterMilestones.map((m) =>
+          prisma.milestone.update({
+            where: { id: m.id },
+            data: { current: m.target ?? 0 },
+          })
+        )
+      );
+    }
+  } else {
+    // For uncompleting: just set all to 0
+    await prisma.milestone.updateMany({
+      where: { id: { in: descendantIds } },
+      data: { current: 0 },
+    });
+  }
+}
+
 export const milestoneRouter = router({
   tree: publicProcedure
     .input(z.object({ entryId: z.string() }))
@@ -345,10 +417,21 @@ export const milestoneRouter = router({
       if (milestone.type === "CHECKBOX") {
         // Toggle between 0 and 1 for checkboxes
         newCurrent = milestone.current >= 1 ? 0 : 1;
+
+        // When marking a parent as complete/incomplete, also update all descendants
+        await completeDescendants(milestone.id, milestone.entryId, newCurrent >= 1);
       } else {
         // Counter: increment/decrement with clamp
         const target = milestone.target ?? 0;
         newCurrent = clamp(milestone.current + input.delta, 0, target);
+
+        // If counter reaches target (complete), mark descendants complete
+        // If counter goes to 0 (incomplete), mark descendants incomplete
+        if (newCurrent === target && milestone.current < target) {
+          await completeDescendants(milestone.id, milestone.entryId, true);
+        } else if (newCurrent === 0 && milestone.current > 0) {
+          await completeDescendants(milestone.id, milestone.entryId, false);
+        }
       }
 
       const updated = await prisma.milestone.update({
@@ -383,6 +466,9 @@ export const milestoneRouter = router({
       }
 
       let newCurrent: number;
+      const wasComplete = milestone.type === "CHECKBOX" 
+        ? milestone.current >= 1 
+        : milestone.current >= (milestone.target ?? 0);
 
       if (milestone.type === "CHECKBOX") {
         // For checkboxes, treat any value >= 1 as checked
@@ -391,6 +477,17 @@ export const milestoneRouter = router({
         // Counter: clamp to valid range
         const target = milestone.target ?? 0;
         newCurrent = clamp(input.value, 0, target);
+      }
+
+      const isNowComplete = milestone.type === "CHECKBOX"
+        ? newCurrent >= 1
+        : newCurrent >= (milestone.target ?? 0);
+
+      // Update descendants if completion status changed
+      if (isNowComplete && !wasComplete) {
+        await completeDescendants(milestone.id, milestone.entryId, true);
+      } else if (!isNowComplete && wasComplete) {
+        await completeDescendants(milestone.id, milestone.entryId, false);
       }
 
       const updated = await prisma.milestone.update({

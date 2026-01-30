@@ -1,5 +1,9 @@
 # Data Model — Completionist Progress Tracker
 
+## Responsive Mobile Update (2026-01-29)
+
+> **No schema changes required.** The responsive/mobile-friendly features (FR-016 to FR-019) are purely UI/presentation layer changes. All existing entities, relations, and derived metrics remain unchanged.
+
 ## Entities
 
 ### Franchise
