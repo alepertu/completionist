@@ -82,20 +82,56 @@
 - [x] T032 Optimize milestone queries with indexes and select pruning at [prisma/schema.prisma](prisma/schema.prisma)
 - [x] T033 [P] Validate quickstart by running migrations, seeds, and smoke e2e at [quickstart.md](specs/001-completionist-tracker/quickstart.md)
 
+---
+
+## Phase 6: User Story 4 - Use the app on mobile devices (Priority: P2)
+
+**Goal**: User accesses the tracker on mobile and navigates franchises, entries, milestones with a responsive interface that adapts to smaller screens (<768px).
+
+**Independent Test**: On a mobile viewport, user can tap hamburger → select franchise → swipe carousel → expand milestones without horizontal scrolling or misclicks.
+
+### Implementation
+
+- [x] T034 [P] [US4] Add `.touch-target` and scroll-snap utilities to [src/styles/globals.css](src/styles/globals.css)
+- [x] T035 [P] [US4] Create `useMediaQuery` hook with SSR-safe detection at [src/hooks/useMediaQuery.ts](src/hooks/useMediaQuery.ts)
+- [x] T036 [P] [US4] Create `MobileMenuContext` provider with open/close/toggle state at [src/context/mobile-menu-context.tsx](src/context/mobile-menu-context.tsx)
+- [x] T037 [US4] Create `MobileMenu` component with hamburger button, backdrop, and slide-in panel at [src/components/layout/MobileMenu.tsx](src/components/layout/MobileMenu.tsx)
+- [x] T038 [US4] Wrap app with `MobileMenuProvider` in root layout at [app/providers.tsx](app/providers.tsx)
+- [x] T039 [US4] Modify `FranchiseSidebar` to hide on mobile (`hidden md:flex`) and render inside `MobileMenu` overlay at [src/components/sidebar/FranchiseSidebar.tsx](src/components/sidebar/FranchiseSidebar.tsx)
+- [x] T040 [US4] Add responsive carousel layout with scroll-snap and full-width items on mobile at [app/franchises/[franchiseId]/layout.tsx](app/franchises/%5BfranchiseId%5D/layout.tsx)
+- [x] T041 [US4] Update `MilestoneTree` with touch-target sizing (44×44px) and scaled indentation (16px mobile, 24px desktop) at [src/components/milestones/MilestoneTree.tsx](src/components/milestones/MilestoneTree.tsx)
+- [x] T042 [US4] Ensure hamburger icon stays fixed during scroll and close menu on route change at [src/components/layout/MobileMenu.tsx](src/components/layout/MobileMenu.tsx)
+
+### Optional Tests (add only if requested later)
+
+- [ ] T043 [P] [US4] Vitest unit test for `useMediaQuery` hook at [tests/unit/useMediaQuery.test.ts](tests/unit/useMediaQuery.test.ts)
+- [ ] T044 [P] [US4] Playwright mobile viewport test for hamburger menu, carousel swipe, and milestone tree at [tests/e2e/mobile-navigation.spec.ts](tests/e2e/mobile-navigation.spec.ts)
+
+---
+
+## Phase 7: Final Polish (Post-Mobile)
+
+- [ ] T045 [P] Verify no horizontal scroll on 320px viewport across all pages
+- [ ] T046 [P] Add touch gesture conflict prevention (swipe vs tap) documentation at [specs/001-completionist-tracker/quickstart.md](specs/001-completionist-tracker/quickstart.md)
+- [ ] T047 Run full e2e suite on mobile-chrome and mobile-safari Playwright projects
+
 ## Dependencies & Execution Order
 
-- Setup (Phase 1) → Foundational (Phase 2) → User Stories in priority order (US1 → US2 → US3) → Polish.
+- Setup (Phase 1) → Foundational (Phase 2) → User Stories in priority order (US1 → US2 → US3 → US4) → Polish.
 - US2 depends on completion calc and milestone tree from US1.
 - US3 depends on data model, routers, and UI shell from US1, and recompute pipeline from US2.
+- US4 depends on UI components from US1 (sidebar, carousel, milestone tree) to add responsive behavior.
 
 ## Parallel Execution Examples
 
 - US1: T011, T012, T013, T014, T015 can proceed in parallel; T016/T017 after data + UI wiring.
 - US2: T019 and T020 in parallel; T021 follows mutation wiring; T022 after recompute hook.
 - US3: T024–T026 parallel; T027 after preferences router; T028 with T024.
+- US4: T034, T035, T036 in parallel (utilities + context); T037–T039 sequentially (MobileMenu depends on context); T040–T041 in parallel after menu wiring.
 
 ## Implementation Strategy
 
 - MVP first: Complete Setup + Foundational, then US1; demo read-only progress with accent theming.
 - Incremental: Layer US2 mutations and recompute; then US3 creation/preferences and accent updates.
+- Mobile: US4 adds responsive behavior on top of existing UI; can be developed after US1 UI is stable.
 - Testing: Optional e2e/integration tasks provided; add if test scope is requested.

@@ -19,7 +19,7 @@ const ThemeContext = createContext<ThemePreferences | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [accent, setAccent] = useState<string>("#00e5ff");
+  const [accent, setAccent] = useState<string>("#64748b");
   const [includeOptionalEntries, setIncludeOptionalEntries] =
     useState<boolean>(true);
 

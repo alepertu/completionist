@@ -5,7 +5,7 @@ import { MediaType } from "../../lib/types";
 
 // Color presets for accent picker
 const ACCENT_PRESETS = [
-  { name: "Cyan", value: "#00e5ff" },
+  { name: "Cyan", value: "#64748b" },
   { name: "Purple", value: "#a855f7" },
   { name: "Pink", value: "#ec4899" },
   { name: "Orange", value: "#f97316" },
@@ -63,7 +63,7 @@ export function FranchiseForm({
       newErrors.name = "Name is required";
     }
     if (!accent.trim() || !/^#[0-9A-Fa-f]{6}$/.test(accent)) {
-      newErrors.accent = "Valid hex color required (e.g., #00e5ff)";
+      newErrors.accent = "Valid hex color required (e.g., #64748b)";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -218,7 +218,7 @@ export function EntryForm({
   onCancel,
   isLoading = false,
   submitLabel = "Save",
-  accentColor = "#00e5ff",
+  accentColor = "#64748b",
 }: EntryFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [mediaType, setMediaType] = useState<MediaType>(
@@ -456,7 +456,7 @@ type OptionalToggleProps = {
 export function OptionalToggle({
   value,
   onChange,
-  accentColor = "#00e5ff",
+  accentColor = "#64748b",
   disabled = false,
   label = "Optional",
   description,

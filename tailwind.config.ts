@@ -4,19 +4,19 @@ const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}"
+    "./components/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        accent: "var(--accent-neon, #00e5ff)"
+        accent: "var(--accent-neon, #64748b)",
       },
       boxShadow: {
-        glow: "0 0 12px var(--accent-neon, #00e5ff)"
-      }
-    }
+        glow: "0 0 12px var(--accent-neon, #64748b)",
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
 
 export default config;

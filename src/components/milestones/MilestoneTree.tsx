@@ -7,6 +7,7 @@ import {
   type CompletionResult,
 } from "../../lib/completion";
 import { api } from "../../trpc/react";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 
 type MilestoneTreeNode = {
   node: MilestoneNode;
@@ -40,6 +41,10 @@ function MilestoneItem({
   const [isExpanded, setIsExpanded] = useState(depth < 2);
   const hasChildren = node.children && node.children.length > 0;
   const utils = api.useUtils();
+  const isMobile = useIsMobile();
+
+  // Responsive indentation: 16px on mobile, 24px on desktop
+  const indentPixels = isMobile ? 16 : 24;
 
   // Local state for counter with debounce
   const [localCurrent, setLocalCurrent] = useState(node.current ?? 0);
@@ -247,7 +252,7 @@ function MilestoneItem({
           onClick={handleCheckboxToggle}
           disabled={isPending}
           className={`
-            w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+            w-8 h-8 md:w-5 md:h-5 rounded border-2 flex items-center justify-center transition-colors
             ${isChecked ? "bg-opacity-100" : "bg-transparent"}
             ${isPending ? "opacity-50 cursor-wait" : "cursor-pointer hover:opacity-80"}
           `}
@@ -284,6 +289,54 @@ function MilestoneItem({
       const canIncrement = localCurrent < target;
       const localPercent = target > 0 ? (localCurrent / target) * 100 : 0;
 
+      // Mobile: compact vertical layout (text above slider)
+      if (isMobile) {
+        return (
+          <div className="flex flex-col items-end gap-1">
+            {/* Counter text above */}
+            {isEditing ? (
+              <input
+                type="number"
+                min={0}
+                max={target}
+                value={localCurrent}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleInputKeyDown}
+                autoFocus
+                className="w-14 text-xs text-center font-mono border border-slate-300 rounded px-1 py-0.5"
+              />
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-xs text-slate-500 font-mono hover:bg-slate-100 rounded px-1 py-0.5 transition-colors"
+                title="Tap to edit"
+              >
+                {localCurrent}/{target}
+                {isPendingCounter && (
+                  <span className="ml-1 text-slate-400">...</span>
+                )}
+              </button>
+            )}
+
+            {/* Slider only */}
+            <input
+              type="range"
+              min={0}
+              max={target}
+              value={localCurrent}
+              onChange={handleSliderChange}
+              className="w-24 h-3 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${localPercent}%, #e2e8f0 ${localPercent}%, #e2e8f0 100%)`,
+              }}
+              aria-label={`Progress: ${localCurrent} of ${target}`}
+            />
+          </div>
+        );
+      }
+
+      // Desktop: full horizontal layout with buttons
       return (
         <div className="flex items-center gap-2">
           {/* Decrement button */}
@@ -391,7 +444,7 @@ function MilestoneItem({
   return (
     <div
       className="border-l-2 border-slate-200"
-      style={{ marginLeft: depth > 0 ? "1rem" : 0 }}
+      style={{ marginLeft: depth > 0 ? `${indentPixels}px` : 0 }}
       role="treeitem"
       aria-selected={false}
       aria-expanded={hasChildren ? isExpanded : undefined}
@@ -400,7 +453,7 @@ function MilestoneItem({
     >
       <div
         className={`
-          flex items-center gap-3 py-2 px-3 rounded-r transition-colors
+          flex items-center gap-2 md:gap-3 py-3 md:py-2 px-2 md:px-3 rounded-r transition-colors
           hover:bg-slate-50 focus-within:bg-slate-50
         `}
         onKeyDown={handleKeyDown}
@@ -410,7 +463,7 @@ function MilestoneItem({
         {hasChildren ? (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 rounded"
+            className="touch-target w-8 h-8 md:w-5 md:h-5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 rounded"
             aria-label={
               isExpanded ? `Collapse ${node.title}` : `Expand ${node.title}`
             }
@@ -433,7 +486,7 @@ function MilestoneItem({
             </svg>
           </button>
         ) : (
-          <div className="w-5" />
+          <div className="w-8 md:w-5" />
         )}
 
         {/* Progress Indicator */}
@@ -475,7 +528,7 @@ function MilestoneItem({
 export function MilestoneTree({
   roots,
   entryId,
-  accentColor = "#00e5ff",
+  accentColor = "#64748b",
   onProgressUpdate,
 }: MilestoneTreeProps) {
   const handleMilestoneUpdate = () => {

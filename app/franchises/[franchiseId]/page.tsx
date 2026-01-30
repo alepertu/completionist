@@ -28,7 +28,7 @@ export default function FranchisePage() {
     (f) => f.id === franchiseId
   );
   const entries = entriesData?.entries ?? [];
-  const accentColor = franchise?.accent ?? "#00e5ff";
+  const accentColor = franchise?.accent ?? "#64748b";
 
   // Calculate overall completion
   const overallCompletion =

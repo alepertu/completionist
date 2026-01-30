@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ConfirmDeleteModal } from "./modals/ConfirmDeleteModal";
 import { api } from "src/trpc/react";
 
-const defaultAccent = "#00e5ff";
+const defaultAccent = "#64748b";
 
 type EditableFranchise = {
   id?: string;
@@ -220,7 +220,7 @@ export function FranchiseList() {
         <input
           value={form.accent}
           onChange={(e) => setForm((f) => ({ ...f, accent: e.target.value }))}
-          placeholder="#00e5ff"
+          placeholder="#64748b"
           aria-label="Accent color"
           className="w-32 rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
         />

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --accent-neon: #00e5ff;
+  --accent-neon: #64748b;
   background-color: #ffffff;
   color: #0f172a;
   font-family:
@@ -52,7 +52,7 @@ input[type="range"]::-webkit-slider-thumb {
   height: 14px;
   border-radius: 50%;
   background: white;
-  border: 2px solid currentColor;
+  border: 2px solid var(--accent-neon);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.1s ease;
@@ -67,7 +67,7 @@ input[type="range"]::-moz-range-thumb {
   height: 14px;
   border-radius: 50%;
   background: white;
-  border: 2px solid currentColor;
+  border: 2px solid var(--accent-neon);
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.1s ease;
@@ -87,4 +87,26 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
+}
+
+/* Mobile-friendly utilities */
+@layer utilities {
+  /* Touch-friendly target sizes for mobile only */
+  .touch-target {
+    @apply md:min-h-0 md:min-w-0;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
 }
