@@ -90,6 +90,24 @@ export async function computeEntryCompletion(
 }
 
 export const entryRouter = router({
+  get: publicProcedure
+    .input(z.object({ entryId: z.string() }))
+    .query(async ({ input }) => {
+      const entry = await prisma.entry.findUnique({
+        where: { id: input.entryId },
+        select: {
+          id: true,
+          title: true,
+          franchiseId: true,
+          franchise: { select: { name: true } },
+        },
+      });
+      if (!entry) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Entry not found" });
+      }
+      return { entry };
+    }),
+
   listByFranchise: publicProcedure
     .input(
       z.object({
@@ -306,14 +324,17 @@ export const entryRouter = router({
       }
 
       const updates = buildDisplayOrderUpdates(input.orderedEntryIds);
-      await prisma.$transaction(
-        updates.map((u: { id: string; displayOrder: number }) =>
+
+      // Parallel updates - faster than sequential or $transaction with Accelerate
+      await Promise.all(
+        updates.map((u) =>
           prisma.entry.update({
             where: { id: u.id },
             data: { displayOrder: u.displayOrder },
           })
         )
       );
+
       return { success: true };
     }),
 
@@ -352,6 +373,29 @@ export const entryRouter = router({
           });
         })
       );
+
+      // Auto-seed checkbox for binary media types (BOOK, MOVIE)
+      if (
+        input.mediaType === MediaType.BOOK ||
+        input.mediaType === MediaType.MOVIE
+      ) {
+        const checkboxTitle =
+          input.mediaType === MediaType.BOOK ? "Finished Reading" : "Watched";
+
+        await prisma.$transaction(
+          createdEntries.map((entry) =>
+            prisma.milestone.create({
+              data: {
+                entryId: entry.id,
+                title: checkboxTitle,
+                type: "CHECKBOX",
+                current: 0,
+                displayOrder: 10,
+              },
+            })
+          )
+        );
+      }
 
       return { entries: createdEntries, count: createdEntries.length };
     }),

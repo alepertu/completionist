@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+} from "react";
 import { MediaType } from "src/lib/types";
 import { AdminShell } from "src/components/admin/AdminShell";
 import { ConfirmDeleteModal } from "src/components/admin/modals/ConfirmDeleteModal";
@@ -92,6 +98,64 @@ export default function FranchiseEntriesPage() {
   });
 
   const entries = useMemo(() => data?.entries ?? [], [data?.entries]);
+
+  // Local order state for optimistic UI during reorder
+  const [localOrder, setLocalOrder] = useState<string[] | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingOrderRef = useRef<string[] | null>(null);
+
+  // Sync local order when server data changes (and no pending reorder)
+  useEffect(() => {
+    if (pendingOrderRef.current === null && entries.length > 0) {
+      setLocalOrder(null);
+    }
+  }, [entries]);
+
+  // Debounced reorder - batches rapid swaps
+  const debouncedReorder = useCallback(
+    (newOrder: string[]) => {
+      setLocalOrder(newOrder);
+      pendingOrderRef.current = newOrder;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        if (pendingOrderRef.current !== null) {
+          reorderMutation.mutate(
+            { franchiseId, orderedEntryIds: pendingOrderRef.current },
+            {
+              onSettled: () => {
+                pendingOrderRef.current = null;
+                setLocalOrder(null);
+              },
+            }
+          );
+        }
+      }, 400);
+    },
+    [franchiseId, reorderMutation]
+  );
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Use local order if we have pending changes, otherwise use server order
+  const sorted = useMemo(() => {
+    const orderIds = localOrder ?? entries.map((e) => e.id);
+    const entryMap = new Map(entries.map((e) => [e.id, e]));
+    return orderIds
+      .map((id) => entryMap.get(id))
+      .filter(Boolean) as typeof entries;
+  }, [entries, localOrder]);
+
   const filteredEntries = useMemo(() => {
     const term = entrySearch.trim().toLowerCase();
     return entries.filter((e) => {
@@ -111,8 +175,6 @@ export default function FranchiseEntriesPage() {
     deleteMutation.error ||
     bulkDeleteMutation.error ||
     reorderMutation.error;
-
-  const sorted = useMemo(() => entries, [entries]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,24 +197,25 @@ export default function FranchiseEntriesPage() {
   };
 
   const move = (id: string, direction: -1 | 1) => {
-    const index = sorted.findIndex((e) => e.id === id);
+    const currentOrder = localOrder ?? sorted.map((e) => e.id);
+    const index = currentOrder.indexOf(id);
     const targetIndex = index + direction;
-    if (index < 0 || targetIndex < 0 || targetIndex >= sorted.length) return;
-    const next = [...sorted];
+    if (index < 0 || targetIndex < 0 || targetIndex >= currentOrder.length)
+      return;
+    const next = [...currentOrder];
     const [removed] = next.splice(index, 1);
     next.splice(targetIndex, 0, removed);
-    reorderMutation.mutate({
-      franchiseId,
-      orderedEntryIds: next.map((e) => e.id),
-    });
+    debouncedReorder(next);
   };
 
   const busy =
     createMutation.isPending ||
     updateMutation.isPending ||
     deleteMutation.isPending ||
-    bulkDeleteMutation.isPending ||
-    reorderMutation.isPending;
+    bulkDeleteMutation.isPending;
+
+  const isReordering =
+    reorderMutation.isPending || pendingOrderRef.current !== null;
 
   const toggleSelectAll = () => {
     const ids = filteredEntries.map((e) => e.id);
